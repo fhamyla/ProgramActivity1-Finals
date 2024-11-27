@@ -5,7 +5,7 @@ class Process:
         self.process_id = process_id
         self.arrival_time = arrival_time
         self.burst_time = burst_time
-        self.remaining_time = burst_time  # Used for preemptive scheduling
+        self.remaining_time = burst_time
         self.completion_time = 0
         self.turnaround_time = 0
         self.waiting_time = 0
@@ -29,7 +29,6 @@ def sjf_preemptive(processes):
     index = 0
     
     while len(completed_processes) < len(processes):
-        # Add processes that have arrived by the current time
         while index < len(processes) and processes[index].arrival_time <= time:
             heapq.heappush(ready_queue, (processes[index].burst_time, processes[index]))
             index += 1
@@ -47,7 +46,7 @@ def sjf_preemptive(processes):
             else:
                 heapq.heappush(ready_queue, (current_process.remaining_time, current_process))
         else:
-            time += 1  # If no process is ready to run, increment time
+            time += 1
 
 def print_stats(processes):
     print(f"{'Process ID':<12}{'Arrival Time':<15}{'Burst Time':<15}{'Completion Time':<15}{'Turnaround Time':<20}{'Waiting Time':<15}")
@@ -55,7 +54,6 @@ def print_stats(processes):
         print(f"{process.process_id:<12}{process.arrival_time:<15}{process.burst_time:<15}{process.completion_time:<15}{process.turnaround_time:<20}{process.waiting_time:<15}")
 
 def main():
-    # Input processes
     num_processes = int(input("Enter the number of processes: "))
     processes = []
     for i in range(num_processes):
@@ -64,7 +62,6 @@ def main():
         burst_time = int(input(f"Enter Burst Time for Process {process_id}: "))
         processes.append(Process(process_id, arrival_time, burst_time))
 
-    # Choose the algorithm
     print("\nChoose scheduling algorithm:")
     print("1. First Come First Serve (Non-preemptive)")
     print("2. Shortest Job First (Preemptive)")
