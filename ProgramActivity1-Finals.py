@@ -1,80 +1,76 @@
 import heapq
 
-class Process:
-    def __init__(self, process_id, arrival_time, burst_time):
-        self.process_id = process_id
+class PrintJob:
+    def __init__(self, job_id, arrival_time, num_pages):
+        self.job_id = job_id
         self.arrival_time = arrival_time
-        self.burst_time = burst_time
-        self.remaining_time = burst_time
+        self.num_pages = num_pages
         self.completion_time = 0
         self.turnaround_time = 0
         self.waiting_time = 0
 
-def fcfs(processes):
-    processes.sort(key=lambda x: x.arrival_time)
-    time = 0
-    for process in processes:
-        if time < process.arrival_time:
-            time = process.arrival_time
-        time += process.burst_time
-        process.completion_time = time
-        process.turnaround_time = process.completion_time - process.arrival_time
-        process.waiting_time = process.turnaround_time - process.burst_time
+def fcfs_printing(jobs):
+    jobs.sort(key=lambda x: x.arrival_time)  # Sort jobs by arrival time
+    current_time = 0
+    for job in jobs:
+        if current_time < job.arrival_time:
+            current_time = job.arrival_time
+        current_time += job.num_pages  # Printing takes time equal to the number of pages
+        job.completion_time = current_time
+        job.turnaround_time = job.completion_time - job.arrival_time
+        job.waiting_time = job.turnaround_time - job.num_pages
 
-def sjf_preemptive(processes):
-    time = 0
-    completed_processes = []
+def sjf_printing(jobs):
+    current_time = 0
+    completed_jobs = []
     ready_queue = []
-    processes = sorted(processes, key=lambda x: x.arrival_time)
+    jobs = sorted(jobs, key=lambda x: x.arrival_time)  # Sort by arrival time
     index = 0
     
-    while len(completed_processes) < len(processes):
-        while index < len(processes) and processes[index].arrival_time <= time:
-            heapq.heappush(ready_queue, (processes[index].burst_time, processes[index]))
+    while len(completed_jobs) < len(jobs):
+        # Add jobs that have arrived by the current time
+        while index < len(jobs) and jobs[index].arrival_time <= current_time:
+            heapq.heappush(ready_queue, (jobs[index].num_pages, jobs[index]))
             index += 1
         
         if ready_queue:
-            burst_time, current_process = heapq.heappop(ready_queue)
-            time += burst_time
-            current_process.remaining_time -= burst_time
-            
-            if current_process.remaining_time == 0:
-                current_process.completion_time = time
-                current_process.turnaround_time = current_process.completion_time - current_process.arrival_time
-                current_process.waiting_time = current_process.turnaround_time - current_process.burst_time
-                completed_processes.append(current_process)
-            else:
-                heapq.heappush(ready_queue, (current_process.remaining_time, current_process))
+            num_pages, current_job = heapq.heappop(ready_queue)
+            current_time += num_pages
+            current_job.completion_time = current_time
+            current_job.turnaround_time = current_job.completion_time - current_job.arrival_time
+            current_job.waiting_time = current_job.turnaround_time - current_job.num_pages
+            completed_jobs.append(current_job)
         else:
-            time += 1
+            current_time += 1  # If no job is ready to be printed, increment time
 
-def print_stats(processes):
-    print(f"{'Process ID':<12}{'Arrival Time':<15}{'Burst Time':<15}{'Completion Time':<15}{'Turnaround Time':<20}{'Waiting Time':<15}")
-    for process in processes:
-        print(f"{process.process_id:<12}{process.arrival_time:<15}{process.burst_time:<15}{process.completion_time:<15}{process.turnaround_time:<20}{process.waiting_time:<15}")
+def print_job_stats(jobs):
+    print(f"{'Job ID':<10}{'Arrival Time':<15}{'Num Pages':<15}{'Completion Time':<20}{'Turnaround Time':<20}{'Waiting Time':<20}")
+    for job in jobs:
+        print(f"{job.job_id:<10}{job.arrival_time:<15}{job.num_pages:<15}{job.completion_time:<20}{job.turnaround_time:<20}{job.waiting_time:<20}")
 
 def main():
-    num_processes = int(input("Enter the number of processes: "))
-    processes = []
-    for i in range(num_processes):
-        process_id = input(f"Enter Process {i + 1} ID: ")
-        arrival_time = int(input(f"Enter Arrival Time for Process {process_id}: "))
-        burst_time = int(input(f"Enter Burst Time for Process {process_id}: "))
-        processes.append(Process(process_id, arrival_time, burst_time))
-
-    print("\nChoose scheduling algorithm:")
-    print("1. First Come First Serve (Non-preemptive)")
-    print("2. Shortest Job First (Preemptive)")
+    # Simulate print job submissions
+    jobs = [
+        PrintJob("Job 1", 0, 10),  # Job ID, Arrival Time, Pages
+        PrintJob("Job 2", 2, 4),
+        PrintJob("Job 3", 3, 7),
+        PrintJob("Job 4", 5, 2)
+    ]
+    
+    # Choose scheduling algorithm
+    print("Choose scheduling algorithm:")
+    print("1. FCFS (Non-preemptive)")
+    print("2. SJF (Preemptive)")
     choice = int(input())
-
+    
     if choice == 1:
-        print("\nRunning FCFS Scheduling Algorithm...\n")
-        fcfs(processes)
-        print_stats(processes)
+        print("\nRunning FCFS Scheduling Algorithm for Print Jobs...\n")
+        fcfs_printing(jobs)
+        print_job_stats(jobs)
     elif choice == 2:
-        print("\nRunning SJF Preemptive Scheduling Algorithm...\n")
-        sjf_preemptive(processes)
-        print_stats(processes)
+        print("\nRunning SJF Scheduling Algorithm for Print Jobs...\n")
+        sjf_printing(jobs)
+        print_job_stats(jobs)
     else:
         print("Invalid choice!")
 
