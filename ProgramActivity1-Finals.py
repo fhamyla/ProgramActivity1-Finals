@@ -66,8 +66,8 @@ def main():
 
     # Choose the algorithm
     print("\nChoose scheduling algorithm:")
-    print("1. FCFS (Non-preemptive)")
-    print("2. SJF (Preemptive)")
+    print("1. First Come First Serve (Non-preemptive)")
+    print("2. Shortest Job First (Preemptive)")
     choice = int(input())
 
     if choice == 1:
