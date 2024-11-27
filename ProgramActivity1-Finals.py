@@ -1,78 +1,101 @@
+import time
 import heapq
 
-class PrintJob:
-    def __init__(self, job_id, arrival_time, num_pages):
-        self.job_id = job_id
+class Process:
+    def __init__(self, pid, arrival_time, burst_time, priority):
+        self.pid = pid
         self.arrival_time = arrival_time
-        self.num_pages = num_pages
-        self.completion_time = 0
-        self.turnaround_time = 0
-        self.waiting_time = 0
+        self.burst_time = burst_time
+        self.priority = priority
+        self.remaining_time = burst_time
 
-def fcfs_printing(jobs):
-    jobs.sort(key=lambda x: x.arrival_time)  # Sort jobs by arrival time
-    current_time = 0
-    for job in jobs:
-        if current_time < job.arrival_time:
-            current_time = job.arrival_time
-        current_time += job.num_pages  # Printing takes time equal to the number of pages
-        job.completion_time = current_time
-        job.turnaround_time = job.completion_time - job.arrival_time
-        job.waiting_time = job.turnaround_time - job.num_pages
+    def __repr__(self):
+        return f"Process {self.pid} (Arrival: {self.arrival_time}, Burst: {self.burst_time})"
 
-def sjf_printing(jobs):
+
+def fcfs_scheduling(processes):
+    processes.sort(key=lambda x: x.arrival_time)
     current_time = 0
-    completed_jobs = []
-    ready_queue = []
-    jobs = sorted(jobs, key=lambda x: x.arrival_time)  # Sort by arrival time
-    index = 0
+    schedule = []
     
-    while len(completed_jobs) < len(jobs):
-        # Add jobs that have arrived by the current time
-        while index < len(jobs) and jobs[index].arrival_time <= current_time:
-            heapq.heappush(ready_queue, (jobs[index].num_pages, jobs[index]))
-            index += 1
-        
-        if ready_queue:
-            num_pages, current_job = heapq.heappop(ready_queue)
-            current_time += num_pages
-            current_job.completion_time = current_time
-            current_job.turnaround_time = current_job.completion_time - current_job.arrival_time
-            current_job.waiting_time = current_job.turnaround_time - current_job.num_pages
-            completed_jobs.append(current_job)
-        else:
-            current_time += 1  # If no job is ready to be printed, increment time
+    for process in processes:
+        if current_time < process.arrival_time:
+            current_time = process.arrival_time
+        current_time += process.burst_time
+        schedule.append((process.pid, current_time))
+    
+    return schedule
 
-def print_job_stats(jobs):
-    print(f"{'Job ID':<10}{'Arrival Time':<15}{'Num Pages':<15}{'Completion Time':<20}{'Turnaround Time':<20}{'Waiting Time':<20}")
-    for job in jobs:
-        print(f"{job.job_id:<10}{job.arrival_time:<15}{job.num_pages:<15}{job.completion_time:<20}{job.turnaround_time:<20}{job.waiting_time:<20}")
+
+def sjf_preemptive(processes):
+    processes.sort(key=lambda x: x.arrival_time)
+    current_time = 0
+    schedule = []
+    ready_queue = []
+    idx = 0
+
+    while idx < len(processes) or ready_queue:
+        # Add processes to the ready queue if they have arrived
+        while idx < len(processes) and processes[idx].arrival_time <= current_time:
+            heapq.heappush(ready_queue, (processes[idx].burst_time, processes[idx]))
+            idx += 1
+
+        if ready_queue:
+            # Pop the process with the shortest remaining burst time
+            burst_time, process = heapq.heappop(ready_queue)
+            schedule.append((process.pid, current_time))
+            current_time += process.burst_time
+            process.remaining_time = 0  # Process finishes
+        else:
+            current_time += 1  # Time moves forward when no process is ready
+
+    return schedule
+
+
+def display_schedule(schedule):
+    print("Process Execution Order:")
+    for pid, time in schedule:
+        print(f"Process {pid} finished at time {time}")
+
+
+def loading_screen():
+    print("************************************")
+    print("* CPU scheduler by Fhamyla De Vera *")
+    print("************************************")
+    input("Click Enter to proceed.")
+    print("\nLoading...")
+    time.sleep(3)  # Simulate loading time of 3 seconds
+
 
 def main():
-    # Simulate print job submissions
-    jobs = [
-        PrintJob("Job 1", 0, 10),  # Job ID, Arrival Time, Pages
-        PrintJob("Job 2", 2, 4),
-        PrintJob("Job 3", 3, 7),
-        PrintJob("Job 4", 5, 2)
+    loading_screen()
+
+    processes = [
+        Process(pid=1, arrival_time=0, burst_time=8, priority=1),
+        Process(pid=2, arrival_time=1, burst_time=4, priority=2),
+        Process(pid=3, arrival_time=2, burst_time=9, priority=3),
+        Process(pid=4, arrival_time=3, burst_time=5, priority=4)
     ]
     
-    # Choose scheduling algorithm
-    print("Choose scheduling algorithm:")
-    print("1. FCFS (Non-preemptive)")
-    print("2. SJF (Preemptive)")
-    choice = int(input())
+    print("Choose the scheduling algorithm:")
+    print("1: First Come First Serve (Non-Preemptive)")
+    print("2: Shortest Job First (Preemptive)")
+    choice = int(input("Enter choice (1 or 2): "))
+    print("\nLoading...")
+    time.sleep(3)  # Simulate loading time of 3 seconds
     
     if choice == 1:
-        print("\nRunning FCFS Scheduling Algorithm for Print Jobs...\n")
-        fcfs_printing(jobs)
-        print_job_stats(jobs)
+        print("Running First Come First Serve Scheduling (Non-Preemptive)...")
+        schedule = fcfs_scheduling(processes)
     elif choice == 2:
-        print("\nRunning SJF Scheduling Algorithm for Print Jobs...\n")
-        sjf_printing(jobs)
-        print_job_stats(jobs)
+        print("Running Shortest Job First Scheduling (Preemptive)...")
+        schedule = sjf_preemptive(processes)
     else:
-        print("Invalid choice!")
+        print("Invalid choice. Exiting.")
+        return
+
+    display_schedule(schedule)
+
 
 if __name__ == "__main__":
     main()
