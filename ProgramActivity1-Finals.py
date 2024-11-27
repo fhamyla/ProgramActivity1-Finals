@@ -35,19 +35,17 @@ def sjf_preemptive(processes):
     idx = 0
 
     while idx < len(processes) or ready_queue:
-        # Add processes to the ready queue if they have arrived
         while idx < len(processes) and processes[idx].arrival_time <= current_time:
             heapq.heappush(ready_queue, (processes[idx].burst_time, processes[idx]))
             idx += 1
 
         if ready_queue:
-            # Pop the process with the shortest remaining burst time
             burst_time, process = heapq.heappop(ready_queue)
             schedule.append((process.pid, current_time))
             current_time += process.burst_time
-            process.remaining_time = 0  # Process finishes
+            process.remaining_time = 0
         else:
-            current_time += 1  # Time moves forward when no process is ready
+            current_time += 1
 
     return schedule
 
@@ -64,7 +62,7 @@ def loading_screen():
     print("************************************")
     input("Click Enter to proceed.")
     print("\nLoading...")
-    time.sleep(3)  # Simulate loading time of 3 seconds
+    time.sleep(3)
 
 
 def main():
@@ -82,7 +80,7 @@ def main():
     print("2: Shortest Job First (Preemptive)")
     choice = int(input("Enter choice (1 or 2): "))
     print("\nLoading...")
-    time.sleep(3)  # Simulate loading time of 3 seconds
+    time.sleep(3)
     
     if choice == 1:
         print("Running First Come First Serve Scheduling (Non-Preemptive)...")
